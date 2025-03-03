@@ -1,0 +1,58 @@
+[package]
+name = "pg_tokenizer"
+version = "0.0.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[[bin]]
+name = "pgrx_embed_pg_tokenizer"
+path = "./src/bin/pgrx_embed.rs"
+
+[features]
+pg12 = ["pgrx/pg12", "pgrx-tests/pg12"]
+pg13 = ["pgrx/pg13", "pgrx-tests/pg13"]
+pg14 = ["pgrx/pg14", "pgrx-tests/pg14"]
+pg15 = ["pgrx/pg15", "pgrx-tests/pg15"]
+pg16 = ["pgrx/pg16", "pgrx-tests/pg16"]
+pg17 = ["pgrx/pg17", "pgrx-tests/pg17"]
+pg_test = ["insta"]
+lindera-ipadic = ["lindera/ipadic"]
+
+[dependencies]
+dashmap = "6.1.0"
+jieba-rs = "0.7.2"
+lindera = "0.37.0"
+pgrx = "=0.12.9"
+regex = "1.11.1"
+rust-stemmers = { git = "https://github.com/tensorchord/rust-stemmers.git", rev = "51696378e352688b7ffd4fface615370ff5e8768" }
+serde = { version = "1.0.218", features = ["derive"] }
+tocken = "0.1.0"
+tokenizers = "0.21.0"
+toml = "0.8.20"
+unicode-normalization = "0.1.24"
+unicode-segmentation = "1.12.0"
+validator = { version = "0.20.0", features = ["derive"] }
+
+# dependencies for testing
+insta = { version = "1.42.1", optional = true }
+serde_json = "1.0.139"
+
+[dev-dependencies]
+pgrx-tests = "=0.12.9"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+
+[profile.dev-opt]
+inherits = "dev"
+opt-level = 3
+lto = "thin"
+codegen-units = 8
+
+[profile.dev.package]
+insta.opt-level = 3
+similar.opt-level = 3

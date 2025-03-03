@@ -1,0 +1,61 @@
+statement ok
+BEGIN;
+
+statement ok
+CREATE TABLE documents (
+    id SERIAL PRIMARY KEY,
+    passage TEXT,
+    embedding Bm25Vector
+);
+
+statement ok
+SELECT create_text_analyzer('text_analyzer1', $$
+pre_tokenizer = "unicode_segmentation"
+[[character_filters]]
+to_lowercase = {}
+[[character_filters]]
+unicode_normalization = "nfkd"
+[[token_filters]]
+skip_non_alphanumeric = {}
+[[token_filters]]
+stopwords = "nltk"
+[[token_filters]]
+stemmer = "english_porter2"
+$$);
+
+statement ok
+SELECT create_custom_model_tokenizer_and_trigger(
+    tokenizer_name => 'tokenizer1',
+    model_name => 'model1',
+    text_analyzer_name => 'text_analyzer1',
+    table_name => 'documents',
+    source_column => 'passage',
+    target_column => 'embedding'
+);
+
+statement ok
+INSERT INTO documents (passage) VALUES 
+('PostgreSQL is a powerful, open-source object-relational database system. It has over 15 years of active development.'),
+('Full-text search is a technique for searching in plain-text documents or textual database fields. PostgreSQL supports this with tsvector.'),
+('BM25 is a ranking function used by search engines to estimate the relevance of documents to a given search query.'),
+('PostgreSQL provides many advanced features like full-text search, window functions, and more.'),
+('Search and ranking in databases are important in building effective information retrieval systems.'),
+('The BM25 ranking algorithm is derived from the probabilistic retrieval framework.'),
+('Full-text search indexes documents to allow fast text queries. PostgreSQL supports this through its GIN and GiST indexes.'),
+('The PostgreSQL community is active and regularly improves the database system.'),
+('Relational databases such as PostgreSQL can handle both structured and unstructured data.'),
+('Effective search ranking algorithms, such as BM25, improve search results by understanding relevance.');
+
+query T
+SELECT embedding FROM documents ORDER BY id;
+----
+{1:1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:1, 8:1, 9:1, 10:1, 11:1, 12:1}
+{1:1, 7:1, 13:1, 14:2, 15:2, 16:1, 18:1, 20:1, 21:1, 23:1, 25:1, 26:1}
+{15:2, 20:1, 27:1, 28:1, 29:1, 30:1, 32:1, 33:1, 34:1, 36:1, 38:1}
+{1:1, 13:1, 14:1, 15:1, 29:1, 40:1, 41:1, 42:1, 43:1, 44:1, 48:1}
+{7:1, 8:1, 15:1, 28:1, 53:1, 54:1, 55:1, 56:1, 57:1}
+{27:1, 28:1, 57:1, 61:1, 62:1, 63:1, 65:1}
+{1:1, 13:1, 14:2, 15:1, 20:1, 25:1, 38:1, 69:2, 71:1, 72:1, 77:1, 78:1}
+{1:1, 7:1, 8:1, 11:1, 81:1, 83:1, 84:1}
+{1:1, 6:1, 7:1, 90:1, 91:1, 92:1, 93:1}
+{15:2, 27:1, 28:1, 34:1, 55:1, 61:1, 84:1, 101:1, 102:1}

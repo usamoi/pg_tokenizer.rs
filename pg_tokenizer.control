@@ -1,0 +1,7 @@
+comment = 'pg_tokenizer'
+default_version = '@CARGO_VERSION@'
+module_pathname = '$libdir/pg_tokenizer'
+relocatable = false
+superuser = false
+schema = tokenizer_catalog
+requires = 'vchord_bm25'

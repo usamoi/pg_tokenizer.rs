@@ -1,0 +1,25 @@
+statement ok
+BEGIN;
+
+statement ok
+SELECT tokenizer_catalog.create_text_analyzer('text_analyzer1', $$
+pre_tokenizer = "unicode_segmentation"
+[[character_filters]]
+to_lowercase = {}
+[[character_filters]]
+unicode_normalization = "nfkd"
+[[token_filters]]
+skip_non_alphanumeric = {}
+[[token_filters]]
+stopwords = "nltk"
+[[token_filters]]
+stemmer = "english_porter2"
+$$);
+
+query T
+SELECT tokenizer_catalog.apply_text_analyzer('PostgreSQL is a powerful, open-source object-relational database system. It has over 15 years of active development.', 'text_analyzer1');
+----
+{postgresql,power,open,sourc,object,relat,databas,system,15,year,activ,develop}
+
+statement ok
+SELECT tokenizer_catalog.drop_text_analyzer('text_analyzer1');

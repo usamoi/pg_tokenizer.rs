@@ -1,0 +1,35 @@
+statement ok
+BEGIN;
+
+statement ok
+SELECT tokenizer_catalog.create_text_analyzer('jieba_cut_full', $$
+[pre_tokenizer.jieba]
+mode = "full"
+enable_hmm = false
+$$);
+
+query T
+SELECT tokenizer_catalog.apply_text_analyzer('我们中出了一个叛徒', 'jieba_cut_full');
+----
+{我们,中,出,了,一个,叛徒}
+
+statement ok
+SELECT tokenizer_catalog.create_text_analyzer('jieba_cut_percise', $$
+[pre_tokenizer.jieba]
+mode = "percise"
+$$);
+
+query T
+SELECT tokenizer_catalog.apply_text_analyzer('我们中出了一个叛徒', 'jieba_cut_percise');
+----
+{我,我们,们,中,中出,出,了,一,一个,个,叛,叛徒,徒}
+
+statement ok
+SELECT tokenizer_catalog.create_text_analyzer('jieba_cut_search', $$
+[pre_tokenizer.jieba]
+$$);
+
+query T
+SELECT tokenizer_catalog.apply_text_analyzer('我们中出了一个叛徒', 'jieba_cut_search');
+----
+{我们,中出,了,一个,叛徒}
