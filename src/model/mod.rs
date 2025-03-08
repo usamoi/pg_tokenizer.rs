@@ -8,7 +8,6 @@ use builtin::{get_builtin_model, is_builtin_model};
 use custom::{CustomModel, CustomModelConfig};
 use dashmap::{DashMap, Entry};
 use lindera::{LinderaConfig, LinderaModel};
-use pgrx::{extension_sql, IntoDatum};
 use serde::{Deserialize, Serialize};
 
 use crate::utils::spi_get_one;
@@ -50,7 +49,7 @@ type ModelObjectPool = DashMap<String, TokenizerModelPtr>;
 pub(super) static MODEL_OBJECT_POOL: LazyLock<ModelObjectPool> =
     LazyLock::new(|| ModelObjectPool::default());
 
-extension_sql!(
+pgrx::extension_sql!(
     r#"
 CREATE TABLE tokenizer_catalog.model (
     name TEXT NOT NULL UNIQUE PRIMARY KEY,
@@ -87,10 +86,7 @@ pub fn get_model(name: &str) -> TokenizerModelPtr {
 fn get_model_from_database(name: &str) -> Option<TokenizerModelPtr> {
     let config_bytes: &str = spi_get_one(
         "SELECT config FROM tokenizer_catalog.model WHERE name = $1",
-        Some(vec![(
-            pgrx::PgBuiltInOids::TEXTOID.oid(),
-            name.into_datum(),
-        )]),
+        &[name.into()],
     )?;
 
     let config: ModelConfig = serde_json::from_str(&config_bytes).unwrap();

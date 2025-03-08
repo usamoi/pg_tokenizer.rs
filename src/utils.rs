@@ -1,6 +1,6 @@
-use pgrx::{pg_sys::panic::ErrorReportable, spi::Query, FromDatum, IntoDatum};
+use pgrx::{datum::DatumWithOid, pg_sys::panic::ErrorReportable, FromDatum, IntoDatum};
 
-pub fn spi_get_one<T>(query: &str, args: <&str as Query<'static>>::Arguments) -> Option<T>
+pub fn spi_get_one<T>(query: &str, args: &[DatumWithOid]) -> Option<T>
 where
     T: FromDatum + IntoDatum,
 {

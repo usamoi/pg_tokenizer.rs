@@ -1,10 +1,9 @@
 use std::{collections::HashMap, ffi::CStr, sync::Arc};
 
 use pgrx::{
-    extension_sql,
     pg_sys::{panic::ErrorReportable, AsPgCStr},
     prelude::PgHeapTuple,
-    IntoDatum, WhoAllocated,
+    WhoAllocated,
 };
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
@@ -32,10 +31,11 @@ impl TokenizerModel for CustomModel {
             r#"SELECT id FROM tokenizer_catalog."model_{}" WHERE token = $1"#,
             self.name
         );
-        let args = vec![(pgrx::PgBuiltInOids::TEXTOID.oid(), text.into_datum())];
 
         let id = pgrx::Spi::connect(|client| {
-            let tuptable = client.select(&query, None, Some(args)).unwrap_or_report();
+            let tuptable = client
+                .select(&query, None, &[text.into()])
+                .unwrap_or_report();
             match tuptable.first().get_one::<i32>() {
                 Ok(id) => Some(id.unwrap()),
                 Err(e) if matches!(e, pgrx::spi::SpiError::NoTupleTable) => None,
@@ -55,14 +55,12 @@ impl TokenizerModel for CustomModel {
             r#"SELECT id, token FROM tokenizer_catalog."model_{}" WHERE token = ANY($1)"#,
             self.name
         );
-        let args = vec![(
-            pgrx::PgBuiltInOids::TEXTARRAYOID.oid(),
-            tokens.clone().into_datum(),
-        )];
 
         let mut token_map = HashMap::new();
         pgrx::Spi::connect(|client| {
-            let tuptable = client.select(&query, None, Some(args)).unwrap_or_report();
+            let tuptable = client
+                .select(&query, None, &[tokens.clone().into()])
+                .unwrap_or_report();
             for tup in tuptable {
                 let id: i32 = tup.get(1).unwrap_or_report().expect("no id value");
                 let id = u32::try_from(id).expect("id is not a valid u32");
@@ -151,20 +149,13 @@ fn create_custom_model(name: &str, config: &str) {
     let custom_model = CustomModel::new(name, &config);
     let config_str = serde_json::to_string(&ModelConfig::Custom(config)).unwrap();
 
-    pgrx::Spi::connect(|mut client| {
-        client.update(&create_word_table, None, None).unwrap();
-        client.update(&create_trigger, None, None).unwrap();
-        client.update(&insert_existing_tokens, None, None).unwrap();
+    pgrx::Spi::connect_mut(|client| {
+        client.update(&create_word_table, None, &[]).unwrap();
+        client.update(&create_trigger, None, &[]).unwrap();
+        client.update(&insert_existing_tokens, None, &[]).unwrap();
 
         let tuptable = client
-            .update(
-                insert_model,
-                None,
-                Some(vec![
-                    (pgrx::PgBuiltInOids::TEXTOID.oid(), name.into_datum()),
-                    (pgrx::PgBuiltInOids::TEXTOID.oid(), config_str.into_datum()),
-                ]),
-            )
+            .update(insert_model, None, &[name.into(), config_str.into()])
             .unwrap();
         if tuptable.len() == 0 {
             panic!("Model already exists: {}", name);
@@ -187,14 +178,7 @@ fn drop_custom_model(name: &str) {
     }
 
     let select_config = r#"SELECT config FROM tokenizer_catalog.model WHERE name = $1"#;
-    let config_bytes: &str = spi_get_one(
-        select_config,
-        Some(vec![(
-            pgrx::PgBuiltInOids::TEXTOID.oid(),
-            name.into_datum(),
-        )]),
-    )
-    .unwrap();
+    let config_bytes: &str = spi_get_one(select_config, &[name.into()]).unwrap();
     let config: ModelConfig = serde_json::from_str(config_bytes).unwrap();
     let ModelConfig::Custom(config) = &config else {
         panic!("Model is not a custom model: {}", name);
@@ -212,20 +196,11 @@ fn drop_custom_model(name: &str) {
     let drop_table = format!(r#"DROP TABLE IF EXISTS tokenizer_catalog."model_{}""#, name);
     let delete_model = r#"DELETE FROM tokenizer_catalog.model WHERE name = $1 RETURNING 1"#;
 
-    pgrx::Spi::connect(|mut client| {
-        client.update(&drop_model_trigger, None, None).unwrap();
-        client.update(&drop_insert_trigger, None, None).unwrap();
-        client.update(&drop_table, None, None).unwrap();
-        let tuptable = client
-            .update(
-                delete_model,
-                None,
-                Some(vec![(
-                    pgrx::PgBuiltInOids::TEXTOID.oid(),
-                    name.into_datum(),
-                )]),
-            )
-            .unwrap();
+    pgrx::Spi::connect_mut(|client| {
+        client.update(&drop_model_trigger, None, &[]).unwrap();
+        client.update(&drop_insert_trigger, None, &[]).unwrap();
+        client.update(&drop_table, None, &[]).unwrap();
+        let tuptable = client.update(delete_model, None, &[name.into()]).unwrap();
 
         if tuptable.len() == 0 {
             pgrx::warning!("Model not found: {}", name);
@@ -259,7 +234,7 @@ fn apply_text_analyzer_for_custom_model(text: &str, analyzer: &str) -> Vec<Strin
     results
 }
 
-extension_sql!(
+pgrx::extension_sql!(
     r#"
 CREATE FUNCTION custom_model_insert_trigger()
 RETURNS TRIGGER AS $$
@@ -281,7 +256,7 @@ $$ LANGUAGE plpgsql;
     name = "custom_model_insert_trigger"
 );
 
-extension_sql!(
+pgrx::extension_sql!(
     r#"
 CREATE FUNCTION create_custom_model_tokenizer_and_trigger(
 tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT)

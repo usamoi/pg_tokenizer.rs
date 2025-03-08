@@ -4,7 +4,6 @@ use std::{
 };
 
 use dashmap::{DashMap, Entry};
-use pgrx::{extension_sql, IntoDatum};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -65,22 +64,20 @@ impl TextAnalyzer {
             Some(pre_tokenizer) => pre_tokenizer.pre_tokenize(text),
             None => vec![text],
         };
+        let mut tokens = pre_tokenized
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>();
 
-        let mut tokens = Vec::new();
-        'outer: for token in pre_tokenized {
-            let mut token = Cow::Borrowed(token);
-            for filter in &self.token_filters {
-                if !filter.apply(&mut token) {
-                    continue 'outer;
-                }
-            }
-            tokens.push(token.into_owned());
+        for filter in &self.token_filters {
+            tokens = filter.apply_batch(tokens);
         }
+
         tokens
     }
 }
 
-extension_sql!(
+pgrx::extension_sql!(
     r#"
 CREATE TABLE tokenizer_catalog.text_analyzer (
     name TEXT NOT NULL UNIQUE PRIMARY KEY,
@@ -113,10 +110,9 @@ pub fn get_text_analyzer(name: &str) -> TextAnalyzerPtr {
 }
 
 fn get_text_analyzer_from_database(name: &str) -> Option<TextAnalyzerPtr> {
-    let args = vec![(pgrx::PgBuiltInOids::TEXTOID.oid(), name.into_datum())];
     let config: &str = spi_get_one(
         "SELECT config FROM tokenizer_catalog.text_analyzer WHERE name = $1",
-        Some(args),
+        &[name.into()],
     )?;
 
     let config: TextAnalyzerConfig = serde_json::from_str(config).unwrap();
@@ -131,12 +127,7 @@ fn create_text_analyzer(name: &str, config: &str) {
     let config_str = serde_json::to_string(&config).unwrap();
     let text_analyzer = TextAnalyzer::build(config);
 
-    let args = vec![
-        (pgrx::PgBuiltInOids::TEXTOID.oid(), name.into_datum()),
-        (pgrx::PgBuiltInOids::TEXTOID.oid(), config_str.into_datum()),
-    ];
-
-    pgrx::Spi::connect(|mut client| {
+    pgrx::Spi::connect_mut(|client| {
         let tuptable = client
             .update(
                 r#"
@@ -144,7 +135,7 @@ fn create_text_analyzer(name: &str, config: &str) {
                 ON CONFLICT (name) DO NOTHING RETURNING 1
                 "#,
                 Some(1),
-                Some(args),
+                &[name.into(), config_str.into()],
             )
             .unwrap();
 
@@ -163,14 +154,12 @@ fn create_text_analyzer(name: &str, config: &str) {
 
 #[pgrx::pg_extern(volatile, parallel_safe)]
 fn drop_text_analyzer(name: &str) {
-    let args = vec![(pgrx::PgBuiltInOids::TEXTOID.oid(), name.into_datum())];
-
-    pgrx::Spi::connect(|mut client| {
+    pgrx::Spi::connect_mut(|client| {
         let tuptable = client
             .update(
                 "DELETE FROM tokenizer_catalog.text_analyzer WHERE name = $1 RETURNING 1",
                 Some(1),
-                Some(args),
+                &[name.into()],
             )
             .unwrap();
 

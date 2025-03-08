@@ -24,7 +24,7 @@ lindera-ipadic = ["lindera/ipadic"]
 dashmap = "6.1.0"
 jieba-rs = "0.7.2"
 lindera = "0.37.0"
-pgrx = "=0.12.9"
+pgrx = "=0.13.1"
 regex = "1.11.1"
 rust-stemmers = { git = "https://github.com/tensorchord/rust-stemmers.git", rev = "51696378e352688b7ffd4fface615370ff5e8768" }
 serde = { version = "1.0.218", features = ["derive"] }
@@ -40,7 +40,10 @@ insta = { version = "1.42.1", optional = true }
 serde_json = "1.0.139"
 
 [dev-dependencies]
-pgrx-tests = "=0.12.9"
+pgrx-tests = "=0.13.1"
+
+[patch.crates-io]
+pgrx = { git = "https://github.com/silver-ymz/pgrx", branch = "chore/add-ts_cache.h" }
 
 [profile.release]
 opt-level = 3

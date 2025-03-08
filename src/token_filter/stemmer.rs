@@ -91,18 +91,18 @@ impl StemmerTokenFilter {
 }
 
 impl TokenFilter for StemmerTokenFilter {
-    fn apply(&self, token: &mut Cow<str>) -> bool {
-        match token {
-            Cow::Borrowed(token_str) => {
-                let stemmed = self.stemmer.stem(token_str);
-                *token = stemmed;
-            }
-            Cow::Owned(token) => {
-                let stemmed = self.stemmer.stem(&token);
-                *token = stemmed.into_owned();
+    fn apply(&self, token: String) -> Vec<String> {
+        let stemmed = self.stemmer.stem(&token);
+        vec![stemmed.into_owned()]
+    }
+
+    fn apply_batch(&self, mut tokens: Vec<String>) -> Vec<String> {
+        for token in tokens.iter_mut() {
+            let stemmed = self.stemmer.stem(token);
+            if let Cow::Owned(s) = stemmed {
+                *token = s;
             }
         }
-
-        true
+        tokens
     }
 }

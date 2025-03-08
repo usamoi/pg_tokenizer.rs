@@ -1,0 +1,17 @@
+statement ok
+BEGIN;
+
+statement ok
+SELECT tokenizer_catalog.create_text_analyzer('test_french', $$
+pre_tokenizer = "unicode_segmentation"
+[[token_filters]]
+pg_dict = "french_stem"
+$$);
+
+query T
+SELECT tokenizer_catalog.apply_text_analyzer('Tous les êtres humains naissent libres et égaux en dignité et en droits. Ils sont doués de raison et de conscience et doivent agir les uns envers les autres dans un esprit de fraternité.', 'test_french');
+----
+{tous,le,être,humain,naissent,libr,égal,dignit,droit,il,dou,raison,conscienc,doivent,agir,le,un,enver,le,autr,esprit,fratern}
+
+statement ok
+SELECT tokenizer_catalog.drop_text_analyzer('test_french');

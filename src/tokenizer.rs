@@ -1,7 +1,6 @@
 use std::sync::{Arc, LazyLock};
 
 use dashmap::{DashMap, Entry};
-use pgrx::{extension_sql, IntoDatum};
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
@@ -82,7 +81,7 @@ type TokenizerObjectPool = DashMap<String, TokenizerPtr>;
 static TOKENIZER_OBJECT_POOL: LazyLock<TokenizerObjectPool> =
     LazyLock::new(|| TokenizerObjectPool::default());
 
-extension_sql!(
+pgrx::extension_sql!(
     r#"
 CREATE TABLE tokenizer_catalog.tokenizer (
     name TEXT NOT NULL UNIQUE PRIMARY KEY,
@@ -111,10 +110,9 @@ pub fn get_tokenizer(name: &str) -> TokenizerPtr {
 }
 
 fn get_tokenizer_from_database(name: &str) -> Option<TokenizerPtr> {
-    let args = vec![(pgrx::PgBuiltInOids::TEXTOID.oid(), name.into_datum())];
     let config_bytes: &str = spi_get_one(
         "SELECT config FROM tokenizer_catalog.tokenizer WHERE name = $1",
-        Some(args),
+        &[name.into()],
     )?;
 
     let config: TokenizerConfig = serde_json::from_str(config_bytes).unwrap();
@@ -129,12 +127,7 @@ fn create_tokenizer(name: &str, config: &str) {
     let config_str = serde_json::to_string(&config).unwrap();
     let tokenizer = Tokenizer::build(config);
 
-    let args = vec![
-        (pgrx::PgBuiltInOids::TEXTOID.oid(), name.into_datum()),
-        (pgrx::PgBuiltInOids::TEXTOID.oid(), config_str.into_datum()),
-    ];
-
-    pgrx::Spi::connect(|mut client| {
+    pgrx::Spi::connect_mut(|client| {
         let tuptable = client
             .update(
                 r#"
@@ -142,7 +135,7 @@ fn create_tokenizer(name: &str, config: &str) {
                 ON CONFLICT (name) DO NOTHING RETURNING 1
                 "#,
                 Some(1),
-                Some(args),
+                &[name.into(), config_str.into()],
             )
             .unwrap();
 
@@ -161,14 +154,12 @@ fn create_tokenizer(name: &str, config: &str) {
 
 #[pgrx::pg_extern(volatile, parallel_safe)]
 fn drop_tokenizer(name: &str) {
-    let args = vec![(pgrx::PgBuiltInOids::TEXTOID.oid(), name.into_datum())];
-
-    pgrx::Spi::connect(|mut client| {
+    pgrx::Spi::connect_mut(|client| {
         let tuptable = client
             .update(
                 "DELETE FROM tokenizer_catalog.tokenizer WHERE name = $1 RETURNING 1",
                 Some(1),
-                Some(args),
+                &[name.into()],
             )
             .unwrap();
 

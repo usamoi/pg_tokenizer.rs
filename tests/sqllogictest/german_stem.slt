@@ -1,0 +1,17 @@
+statement ok
+BEGIN;
+
+statement ok
+SELECT tokenizer_catalog.create_text_analyzer('test_german', $$
+pre_tokenizer = "unicode_segmentation"
+[[token_filters]]
+pg_dict = "german_stem"
+$$);
+
+query T
+SELECT tokenizer_catalog.apply_text_analyzer('Aus so krummen Holze, als woraus der Mensch gemacht ist, kann nichts ganz Gerades gezimmert werden.', 'test_german');
+----
+{krumm,holz,woraus,mensch,gemacht,ganz,gerad,gezimmert}
+
+statement ok
+SELECT tokenizer_catalog.drop_text_analyzer('test_german');

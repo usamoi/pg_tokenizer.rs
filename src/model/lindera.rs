@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use lindera::tokenizer::{Tokenizer, TokenizerConfig};
-use pgrx::IntoDatum;
 use serde::{Deserialize, Serialize};
 
 use super::{validate_new_model_name, ModelConfig, TokenizerModel, MODEL_OBJECT_POOL};
@@ -49,16 +48,9 @@ fn create_lindera_model(name: &str, config: &str) {
     let lindera_model = LinderaModel::new(&config);
     let config_str = serde_json::to_string(&ModelConfig::Lindera(config)).unwrap();
 
-    pgrx::Spi::connect(|mut client| {
+    pgrx::Spi::connect_mut(|client| {
         let tuptable = client
-            .update(
-                insert_model,
-                Some(1),
-                Some(vec![
-                    (pgrx::PgBuiltInOids::TEXTOID.oid(), name.into_datum()),
-                    (pgrx::PgBuiltInOids::TEXTOID.oid(), config_str.into_datum()),
-                ]),
-            )
+            .update(insert_model, Some(1), &[name.into(), config_str.into()])
             .unwrap();
 
         if tuptable.len() == 0 {
@@ -82,16 +74,9 @@ fn drop_lindera_model(name: &str) {
         DELETE FROM tokenizer_catalog.model WHERE name = $1 RETURNING 1
     "#;
 
-    pgrx::Spi::connect(|mut client| {
+    pgrx::Spi::connect_mut(|client| {
         let tuptable = client
-            .update(
-                delete_model,
-                Some(1),
-                Some(vec![(
-                    pgrx::PgBuiltInOids::TEXTOID.oid(),
-                    name.into_datum(),
-                )]),
-            )
+            .update(delete_model, Some(1), &[name.into()])
             .unwrap();
 
         if tuptable.len() == 0 {

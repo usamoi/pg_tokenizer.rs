@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashSet, sync::LazyLock};
+use std::{collections::HashSet, sync::LazyLock};
 
 use serde::{Deserialize, Serialize};
 
@@ -18,8 +18,12 @@ pub struct StopwordsTokenFilter {
 }
 
 impl TokenFilter for StopwordsTokenFilter {
-    fn apply(&self, token: &mut Cow<str>) -> bool {
-        !self.stopwords.contains(token.as_ref())
+    fn apply(&self, token: String) -> Vec<String> {
+        if self.stopwords.contains(token.as_str()) {
+            vec![]
+        } else {
+            vec![token]
+        }
     }
 }
 
