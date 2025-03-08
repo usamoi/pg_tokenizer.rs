@@ -13,10 +13,7 @@ static BERT_BASE_UNCASED_BYTES: &[u8] =
 static TOCKEN_STR: &str = include_str!(concat!(MODEL_DIR!(), "/wiki_tocken.json"));
 
 pub fn is_builtin_model(name: &str) -> bool {
-    match name {
-        "bert" | "tocken" => true,
-        _ => false,
-    }
+    matches!(name, "bert" | "tocken")
 }
 
 pub fn get_builtin_model(name: &str) -> Option<TokenizerModelPtr> {

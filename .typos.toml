@@ -4,5 +4,9 @@ extend-ignore-re = [
     "\\$.+?\\$",
 ]
 
+[default.extend-words]
+als = "als"
+ist = "ist"
+
 [files]
-extend-exclude = ["assets/**/*"]
+extend-exclude = ["assets/**/*", "tests/sqllogictest/*.slt"]

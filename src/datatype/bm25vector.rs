@@ -24,12 +24,21 @@ impl<'a> Bm25VectorBorrowed<'a> {
         Some(unsafe { Self::new_unchecked(doc_len, indexes, values) })
     }
 
+    /// # Safety
+    ///
+    /// - `indexes` and `values` must have the same length.
+    /// - `indexes` must be sorted in ascending order.
+    /// - The sum of `values` must be equal to `doc_len`.
     pub unsafe fn new_unchecked(doc_len: u32, indexes: &'a [u32], values: &'a [u32]) -> Self {
         Self {
             doc_len,
             indexes,
             values,
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.indexes.is_empty()
     }
 
     pub fn len(&self) -> u32 {

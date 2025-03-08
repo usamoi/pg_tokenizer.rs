@@ -14,13 +14,13 @@ SELECT tokenizer_catalog.apply_text_analyzer('我们中出了一个叛徒', 'jie
 {我们,中,出,了,一个,叛徒}
 
 statement ok
-SELECT tokenizer_catalog.create_text_analyzer('jieba_cut_percise', $$
+SELECT tokenizer_catalog.create_text_analyzer('jieba_cut_precise', $$
 [pre_tokenizer.jieba]
-mode = "percise"
+mode = "precise"
 $$);
 
 query T
-SELECT tokenizer_catalog.apply_text_analyzer('我们中出了一个叛徒', 'jieba_cut_percise');
+SELECT tokenizer_catalog.apply_text_analyzer('我们中出了一个叛徒', 'jieba_cut_precise');
 ----
 {我,我们,们,中,中出,出,了,一,一个,个,叛,叛徒,徒}
 

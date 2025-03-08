@@ -18,8 +18,7 @@ pub trait TokenizerModel {
     fn apply_batch(&self, tokens: Vec<String>) -> Vec<u32> {
         tokens
             .into_iter()
-            .map(|token| self.apply(token))
-            .flatten()
+            .flat_map(|token| self.apply(token))
             .collect()
     }
 }
@@ -47,7 +46,7 @@ enum ModelConfig {
 
 type ModelObjectPool = DashMap<String, TokenizerModelPtr>;
 pub(super) static MODEL_OBJECT_POOL: LazyLock<ModelObjectPool> =
-    LazyLock::new(|| ModelObjectPool::default());
+    LazyLock::new(ModelObjectPool::default);
 
 pgrx::extension_sql!(
     r#"
@@ -66,7 +65,7 @@ pub fn get_model(name: &str) -> TokenizerModelPtr {
     }
 
     match MODEL_OBJECT_POOL.entry(name.to_string()) {
-        Entry::Occupied(entry) => return entry.get().clone(),
+        Entry::Occupied(entry) => entry.get().clone(),
         Entry::Vacant(entry) => {
             if let Some(object) = get_builtin_model(name) {
                 entry.insert(object.clone());
@@ -80,7 +79,7 @@ pub fn get_model(name: &str) -> TokenizerModelPtr {
 
             panic!("Model not found: {}", name);
         }
-    };
+    }
 }
 
 fn get_model_from_database(name: &str) -> Option<TokenizerModelPtr> {
@@ -89,7 +88,7 @@ fn get_model_from_database(name: &str) -> Option<TokenizerModelPtr> {
         &[name.into()],
     )?;
 
-    let config: ModelConfig = serde_json::from_str(&config_bytes).unwrap();
+    let config: ModelConfig = serde_json::from_str(config_bytes).unwrap();
     Some(build_model(name, &config))
 }
 

@@ -9,12 +9,10 @@ where
 
         match tuptable.first().get_one::<T>() {
             Ok(Some(bytes)) => Some(bytes),
-            Ok(None) => panic!("Get null value when excuting spi query: {}", query),
-            Err(e) if matches!(e, pgrx::spi::SpiError::InvalidPosition) => {
-                return None;
-            }
+            Ok(None) => panic!("Get null value when executing spi query: {}", query),
+            Err(pgrx::spi::SpiError::InvalidPosition) => None,
             Err(e) => panic!(
-                "Failed to excuting spi query, error: {}, query: {}",
+                "Failed to executing spi query, error: {}, query: {}",
                 e, query
             ),
         }

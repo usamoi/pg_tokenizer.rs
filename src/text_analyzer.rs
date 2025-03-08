@@ -89,7 +89,7 @@ CREATE TABLE tokenizer_catalog.text_analyzer (
 
 type TextAnalyzerObjectPool = DashMap<String, TextAnalyzerPtr>;
 static TEXT_ANALYZER_OBJECT_POOL: LazyLock<TextAnalyzerObjectPool> =
-    LazyLock::new(|| TextAnalyzerObjectPool::default());
+    LazyLock::new(TextAnalyzerObjectPool::default);
 
 pub fn get_text_analyzer(name: &str) -> TextAnalyzerPtr {
     if let Some(model) = TEXT_ANALYZER_OBJECT_POOL.get(name) {
@@ -139,7 +139,7 @@ fn create_text_analyzer(name: &str, config: &str) {
             )
             .unwrap();
 
-        if tuptable.len() == 0 {
+        if tuptable.is_empty() {
             panic!("Text analyzer already exists: {}", name);
         }
 
@@ -163,7 +163,7 @@ fn drop_text_analyzer(name: &str) {
             )
             .unwrap();
 
-        if tuptable.len() == 0 {
+        if tuptable.is_empty() {
             pgrx::warning!("TextAnalyzer not found: {}", name);
         }
     });

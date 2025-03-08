@@ -5,13 +5,13 @@ use serde::{Deserialize, Serialize};
 
 use super::{PreTokenizer, PreTokenizerPtr};
 
-static JIEBA: LazyLock<Jieba> = LazyLock::new(|| Jieba::new());
+static JIEBA: LazyLock<Jieba> = LazyLock::new(Jieba::new);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum JiebaMode {
     Full,
-    Percise,
+    Precise,
     Search,
 }
 
@@ -36,7 +36,7 @@ struct JiebaFull {
     enable_hmm: bool,
 }
 
-struct JiebaPercise;
+struct JiebaPrecise;
 
 struct JiebaSearch {
     enable_hmm: bool,
@@ -48,7 +48,7 @@ impl PreTokenizer for JiebaFull {
     }
 }
 
-impl PreTokenizer for JiebaPercise {
+impl PreTokenizer for JiebaPrecise {
     fn pre_tokenize<'a>(&self, text: &'a str) -> Vec<&'a str> {
         JIEBA.cut_all(text)
     }
@@ -65,7 +65,7 @@ pub fn create_jieba_pre_tokenizer(config: JiebaConfig) -> PreTokenizerPtr {
         JiebaMode::Full => Arc::new(JiebaFull {
             enable_hmm: config.enable_hmm,
         }),
-        JiebaMode::Percise => Arc::new(JiebaPercise),
+        JiebaMode::Precise => Arc::new(JiebaPrecise),
         JiebaMode::Search => Arc::new(JiebaSearch {
             enable_hmm: config.enable_hmm,
         }),

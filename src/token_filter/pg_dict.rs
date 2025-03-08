@@ -42,7 +42,8 @@ impl TokenFilter for PgDictTokenFilter {
                 Int32GetDatum(token.len().try_into().unwrap()),
             );
             if res.is_null() {
-                return vec![];
+                // not recognized
+                return vec![token];
             }
             let res = DatumGetPointer(res);
 

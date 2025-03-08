@@ -32,16 +32,7 @@ impl TokenizerModel for CustomModel {
             self.name
         );
 
-        let id = pgrx::Spi::connect(|client| {
-            let tuptable = client
-                .select(&query, None, &[text.into()])
-                .unwrap_or_report();
-            match tuptable.first().get_one::<i32>() {
-                Ok(id) => Some(id.unwrap()),
-                Err(e) if matches!(e, pgrx::spi::SpiError::NoTupleTable) => None,
-                Err(e) => panic!("Error fetching TextAnalyzer: {}", e),
-            }
-        });
+        let id = spi_get_one::<i32>(&query, &[text.into()]);
 
         if let Some(id) = id {
             vec![u32::try_from(id).unwrap()]
@@ -102,7 +93,7 @@ impl CustomModelConfig {
 // do 3 4 5 in a transaction, if any step fails, rollback
 #[pgrx::pg_extern(volatile, parallel_safe)]
 fn create_custom_model(name: &str, config: &str) {
-    validate_new_model_name(&name).unwrap();
+    validate_new_model_name(name).unwrap();
 
     let config: CustomModelConfig = toml::from_str(config).unwrap();
     let table = quote_identifier(&config.table);
@@ -157,7 +148,7 @@ fn create_custom_model(name: &str, config: &str) {
         let tuptable = client
             .update(insert_model, None, &[name.into(), config_str.into()])
             .unwrap();
-        if tuptable.len() == 0 {
+        if tuptable.is_empty() {
             panic!("Model already exists: {}", name);
         }
 
@@ -172,7 +163,7 @@ fn create_custom_model(name: &str, config: &str) {
 
 #[pgrx::pg_extern(volatile, parallel_safe)]
 fn drop_custom_model(name: &str) {
-    if let Err(e) = validate_new_model_name(&name) {
+    if let Err(e) = validate_new_model_name(name) {
         pgrx::warning!("Invalid model name: {}, Details: {}", name, e);
         return;
     }
@@ -202,7 +193,7 @@ fn drop_custom_model(name: &str) {
         client.update(&drop_table, None, &[]).unwrap();
         let tuptable = client.update(delete_model, None, &[name.into()]).unwrap();
 
-        if tuptable.len() == 0 {
+        if tuptable.is_empty() {
             pgrx::warning!("Model not found: {}", name);
         }
     });

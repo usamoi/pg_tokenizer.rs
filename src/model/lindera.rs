@@ -53,7 +53,7 @@ fn create_lindera_model(name: &str, config: &str) {
             .update(insert_model, Some(1), &[name.into(), config_str.into()])
             .unwrap();
 
-        if tuptable.len() == 0 {
+        if tuptable.is_empty() {
             panic!("Model already exists: {}", name);
         }
 
@@ -79,7 +79,7 @@ fn drop_lindera_model(name: &str) {
             .update(delete_model, Some(1), &[name.into()])
             .unwrap();
 
-        if tuptable.len() == 0 {
+        if tuptable.is_empty() {
             pgrx::warning!("Model not found: {}", name);
         }
     });

@@ -32,9 +32,9 @@ struct TokenizerConfig {
 impl TokenizerConfig {
     fn validate_text_analyzer(&self) -> Result<(), ValidationError> {
         let external_defined = self.text_analyzer.is_some();
-        let inline_defined = self.character_filters.len() > 0
+        let inline_defined = !self.character_filters.is_empty()
             || self.pre_tokenizer.is_some()
-            || self.token_filters.len() > 0;
+            || !self.token_filters.is_empty();
 
         if external_defined && inline_defined {
             return Err(ValidationError::new(
@@ -79,7 +79,7 @@ impl Tokenizer {
 
 type TokenizerObjectPool = DashMap<String, TokenizerPtr>;
 static TOKENIZER_OBJECT_POOL: LazyLock<TokenizerObjectPool> =
-    LazyLock::new(|| TokenizerObjectPool::default());
+    LazyLock::new(TokenizerObjectPool::default);
 
 pgrx::extension_sql!(
     r#"
@@ -139,7 +139,7 @@ fn create_tokenizer(name: &str, config: &str) {
             )
             .unwrap();
 
-        if tuptable.len() == 0 {
+        if tuptable.is_empty() {
             panic!("Tokenizer already exists: {}", name);
         }
 
@@ -163,7 +163,7 @@ fn drop_tokenizer(name: &str) {
             )
             .unwrap();
 
-        if tuptable.len() == 0 {
+        if tuptable.is_empty() {
             pgrx::warning!("Tokenizer not found: {}", name);
         }
     });

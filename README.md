@@ -165,7 +165,7 @@ You can choose only one of the above options for each character filter.
 
 | Key        | Type    | Description                                                                            |
 | ---------- | ------- | -------------------------------------------------------------------------------------- |
-| mode       | String  | Jieba tokenizer mode, supported values: `full`, `percise`, `search`. default: `search` |
+| mode       | String  | Jieba tokenizer mode, supported values: `full`, `precise`, `search`. default: `search` |
 | enable_hmm | Boolean | Whether to enable HMM, default: `true`                                                 |
 
 ### Options for `token_filter`
