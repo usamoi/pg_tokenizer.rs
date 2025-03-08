@@ -213,8 +213,8 @@ fn drop_custom_model(name: &str) {
 const MAX_TOKEN_LENGTH: usize = 2600;
 
 #[pgrx::pg_extern(volatile, parallel_safe)]
-fn apply_text_analyzer_for_custom_model(text: &str, analyzer: &str) -> Vec<String> {
-    let text_analyzer = get_text_analyzer(analyzer);
+fn apply_text_analyzer_for_custom_model(text: &str, text_analyzer_name: &str) -> Vec<String> {
+    let text_analyzer = get_text_analyzer(text_analyzer_name);
     let mut results = text_analyzer.apply(text);
 
     // split all tokens that are longer than 2600 characters
