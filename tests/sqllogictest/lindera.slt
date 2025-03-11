@@ -80,12 +80,12 @@ $$);
 query T
 SELECT tokenizer_catalog.tokenize('関西国際空港限定トートバッグ', 'lindera_ipadic');
 ----
-{372979:1, 374175:1}
+{372979,374175}
 
 query T
 SELECT tokenizer_catalog.tokenize('東京スカイツリーの最寄り駅はとうきょうスカイツリー駅です', 'lindera_ipadic');
 ----
-{21418:1, 47803:1, 89247:2, 91808:2, 245235:1, 250023:1, 383791:1}
+{250023,89247,91808,245235,47803,21418,89247,91808,383791}
 
 statement ok
 SELECT tokenizer_catalog.drop_lindera_model('lindera_ipadic');

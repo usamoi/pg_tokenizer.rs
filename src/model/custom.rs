@@ -280,6 +280,8 @@ $body$ LANGUAGE plpgsql;
 fn custom_model_tokenizer_set_target_column_trigger<'a>(
     trigger: &'a pgrx::PgTrigger<'a>,
 ) -> Result<Option<PgHeapTuple<'a, impl WhoAllocated>>, ()> {
+    use pgrx::IntoDatum;
+
     let mut new = trigger.new().expect("new tuple is missing").into_owned();
     let tg_argv = trigger.extra_args().expect("trigger arguments are missing");
     if tg_argv.len() != 3 {
@@ -297,8 +299,39 @@ fn custom_model_tokenizer_set_target_column_trigger<'a>(
     };
 
     let target = crate::tokenizer::tokenize(source, tokenizer_name);
-    new.set_by_name(target_column, target)
-        .expect("set target column failed");
+    let (idx, att) = new
+        .get_attribute_by_name(target_column)
+        .expect("get target column failed");
+    let attoid = att.type_oid().value();
+    if Vec::<i32>::is_compatible_with(attoid) {
+        new.set_by_index(idx, target)
+            .expect("set target column failed");
+    } else {
+        panic!(
+            "Unsupported target column type: {}",
+            lookup_type_name(attoid)
+        );
+        // TODO: cast it using spi, waiting for pgrx update
+        // let target_casted = pgrx::Spi::connect(|client| {
+        //     let tuptable = client
+        //         .select(
+        //             &format!("SELECT $1::{}", lookup_type_name(attoid)),
+        //             Some(1),
+        //             &[target.into()],
+        //         )
+        //         .unwrap_or_report();
+
+        //     tuptable
+        //         .first()
+        //         .get_datum_by_ordinal(1)
+        //         .unwrap_or_report()
+        //         .unwrap()
+        // });
+
+        // new.set_by_index(idx, target_casted)
+        //     .expect("set target column failed");
+    }
+
     Ok(Some(new))
 }
 
@@ -308,5 +341,17 @@ fn quote_identifier(ident: &str) -> String {
         let quoted_str = CStr::from_ptr(ptr).to_str().unwrap().to_string();
         pgrx::pg_sys::pfree(ptr as _);
         quoted_str
+    }
+}
+
+fn lookup_type_name(oid: pgrx::pg_sys::Oid) -> String {
+    unsafe {
+        // SAFETY: nothing to concern ourselves with other than just calling into Postgres FFI
+        // and Postgres will raise an ERROR if we pass it an invalid Oid, so it'll never return a null
+        let cstr_name = pgrx::pg_sys::format_type_extended(oid, -1, 0);
+        let cstr = CStr::from_ptr(cstr_name);
+        let typname = cstr.to_string_lossy().to_string();
+        pgrx::pg_sys::pfree(cstr_name as _); // don't leak the palloc'd cstr_name
+        typname
     }
 }

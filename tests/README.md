@@ -1,4 +1,4 @@
-## Tests for vchord_bm25
+## Tests for pg_tokenizer
 
 We use [sqllogictest-rs](https://github.com/risinglightdb/sqllogictest-rs) to test the SQL queries.
 

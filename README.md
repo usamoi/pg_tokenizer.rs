@@ -25,7 +25,7 @@ SELECT tokenizer_catalog.tokenize('PostgreSQL is a powerful, open-source object-
 CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
     passage TEXT,
-    embedding Bm25Vector
+    embedding INT[]
 );
 
 SELECT create_text_analyzer('text_analyzer1', $$
@@ -90,8 +90,6 @@ SELECT tokenizer_catalog.apply_text_analyzer('Aus so krummen Holze, als woraus d
 ```
 
 ## Installation
-
-`pg_tokenizer` is dependent on [`Vectorchord-bm25`](https://github.com/tensorchord/VectorChord-bm25). Please install it first.
 
 ```bash
 CREATE EXTENSION pg_tokenizer;

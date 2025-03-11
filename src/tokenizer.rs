@@ -6,7 +6,6 @@ use validator::{Validate, ValidationError};
 
 use crate::{
     character_filter::CharacterFilterConfig,
-    datatype::Bm25VectorOutput,
     model::{get_model, TokenizerModelPtr},
     pre_tokenizer::PreTokenizerConfig,
     text_analyzer::{get_text_analyzer, TextAnalyzer, TextAnalyzerConfig, TextAnalyzerPtr},
@@ -172,7 +171,11 @@ fn drop_tokenizer(name: &str) {
 }
 
 #[pgrx::pg_extern(stable, parallel_safe)]
-pub fn tokenize(text: &str, tokenizer_name: &str) -> Bm25VectorOutput {
+pub fn tokenize(text: &str, tokenizer_name: &str) -> Vec<i32> {
     let tokenizer = get_tokenizer(tokenizer_name);
-    Bm25VectorOutput::from_ids(&tokenizer.tokenize(text))
+    tokenizer
+        .tokenize(text)
+        .into_iter()
+        .map(|x| x.try_into().unwrap())
+        .collect()
 }

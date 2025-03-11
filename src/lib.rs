@@ -1,5 +1,4 @@
 pub mod character_filter;
-pub mod datatype;
 pub mod model;
 pub mod pre_tokenizer;
 pub mod text_analyzer;
@@ -23,6 +22,6 @@ pub mod pg_test {
 
     pub fn postgresql_conf_options() -> Vec<&'static str> {
         // return any postgresql.conf settings that are required for your tests
-        vec![r#"search_path = '"$user", public, bm25_catalog, tokenizer_catalog'"#]
+        vec![r#"search_path = '"$user", public, tokenizer_catalog'"#]
     }
 }
