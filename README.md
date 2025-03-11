@@ -97,7 +97,7 @@ CREATE EXTENSION pg_tokenizer;
 
 ## Usage
 
-The extension is mainly composed by 2 parts, `text analyzer` and `model`. `text analyzer` is used to parse the text and generate token arrays, which has similar functionality as `tsvector`. While `model` is used to generate token embeddings(`bm25vector`), which is used for similarity search.
+The extension is mainly composed by 2 parts, `text analyzer` and `model`. `text analyzer` is used to parse the text and generate token arrays, which has similar functionality as `tsvector`. While `model` is used to generate token embeddings(token id array, can be casted to `bm25vector`), which is used for similarity search.
 
 ### Text Analyzer
 
@@ -123,7 +123,7 @@ The extension is mainly composed by 2 parts, `text analyzer` and `model`. `text 
 - `tokenizer_catalog.apply_text_analyzer(text TEXT, text_analyzer_name TEXT) RETURNS TEXT[]`: Apply a text analyzer to a text.
 - `tokenizer_catalog.create_tokenizer(name TEXT, config TEXT)`: Create a tokenizer.
 - `tokenizer_catalog.drop_tokenizer(name TEXT)`: Drop a tokenizer.
-- `tokenizer_catalog.tokenize(text TEXT, tokenizer_name TEXT) RETURNS bm25vector`: Tokenize a text.
+- `tokenizer_catalog.tokenize(text TEXT, tokenizer_name TEXT) RETURNS INT[]`: Tokenize a text.
 - `tokenizer_catalog.create_custom_model(name TEXT, config TEXT)`: Create a custom model.
 - `tokenizer_catalog.create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT)`: Create a custom model tokenizer and trigger to update the target column automatically.
 - `tokenizer_catalog.drop_custom_model(name TEXT)`: Drop a custom model.
