@@ -236,10 +236,16 @@ DECLARE
 BEGIN
     EXECUTE format('
     WITH 
-    tokens AS (
+    new_tokens AS (
         SELECT unnest(tokenizer_catalog.apply_text_analyzer_for_custom_model($1.%I, %L)) AS token
+    ),
+    to_insert AS (
+        SELECT token FROM new_tokens
+        WHERE NOT EXISTS (
+            SELECT 1 FROM tokenizer_catalog."model_%s" WHERE token = new_tokens.token
+        )
     )
-    INSERT INTO tokenizer_catalog."model_%s" (token) SELECT token FROM tokens ON CONFLICT (token) DO NOTHING', target_column, text_analyzer, tokenizer_name) USING NEW;
+    INSERT INTO tokenizer_catalog."model_%s" (token) SELECT token FROM to_insert ON CONFLICT (token) DO NOTHING', target_column, text_analyzer, tokenizer_name, tokenizer_name) USING NEW;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
