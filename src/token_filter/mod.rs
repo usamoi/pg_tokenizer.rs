@@ -2,6 +2,7 @@ mod pg_dict;
 mod skip_non_alphanumeric;
 mod stemmer;
 mod stopwords;
+mod synonym;
 
 use std::sync::Arc;
 
@@ -31,6 +32,7 @@ pub enum TokenFilterConfig {
     Stemmer(StemmerKind),
     Stopwords(StopwordsKind),
     PgDict(String),
+    Synonym(String),
 }
 
 pub fn get_token_filter(config: TokenFilterConfig) -> TokenFilterPtr {
@@ -39,5 +41,6 @@ pub fn get_token_filter(config: TokenFilterConfig) -> TokenFilterPtr {
         TokenFilterConfig::Stemmer(kind) => Arc::new(StemmerTokenFilter::new(kind)),
         TokenFilterConfig::Stopwords(kind) => Arc::new(StopwordsTokenFilter::new(kind)),
         TokenFilterConfig::PgDict(name) => Arc::new(PgDictTokenFilter::new(&name)),
+        TokenFilterConfig::Synonym(name) => synonym::get_synonym_token_filter(&name),
     }
 }

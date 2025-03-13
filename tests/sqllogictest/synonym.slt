@@ -2,13 +2,16 @@ statement ok
 BEGIN;
 
 statement ok
-CREATE TEXT SEARCH DICTIONARY syn (template=synonym, synonyms='synonym_sample');
+SELECT create_synonym('syn1', $$
+pgsql postgres postgresql
+index indices
+$$);
 
 statement ok
 SELECT tokenizer_catalog.create_text_analyzer('test_synonym', $$
 pre_tokenizer = "unicode_segmentation"
 [[token_filters]]
-pg_dict = "syn"
+synonym = "syn1"
 $$);
 
 query T

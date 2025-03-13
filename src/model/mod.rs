@@ -1,5 +1,6 @@
 mod builtin;
 mod custom;
+mod huggingface;
 mod lindera;
 
 use std::sync::{Arc, LazyLock};
@@ -7,6 +8,7 @@ use std::sync::{Arc, LazyLock};
 use builtin::{get_builtin_model, is_builtin_model};
 use custom::{CustomModel, CustomModelConfig};
 use dashmap::{DashMap, Entry};
+use huggingface::{HuggingFaceConfig, HuggingFaceModel};
 use lindera::{LinderaConfig, LinderaModel};
 use serde::{Deserialize, Serialize};
 
@@ -42,6 +44,7 @@ impl TokenizerModel for tocken::tokenizer::Tokenizer {
 enum ModelConfig {
     Custom(CustomModelConfig),
     Lindera(LinderaConfig),
+    HuggingFace(HuggingFaceConfig),
 }
 
 type ModelObjectPool = DashMap<String, TokenizerModelPtr>;
@@ -96,6 +99,7 @@ fn build_model(name: &str, config: &ModelConfig) -> TokenizerModelPtr {
     match config {
         ModelConfig::Custom(config) => Arc::new(CustomModel::new(name, config)),
         ModelConfig::Lindera(config) => Arc::new(LinderaModel::new(config)),
+        ModelConfig::HuggingFace(config) => Arc::new(HuggingFaceModel::new(name, config)),
     }
 }
 

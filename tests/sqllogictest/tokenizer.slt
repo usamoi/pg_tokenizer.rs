@@ -3,7 +3,7 @@ BEGIN;
 
 statement ok
 SELECT tokenizer_catalog.create_tokenizer('tokenizer1', $$
-model = "bert"
+model = "bert_base_uncased"
 pre_tokenizer.regex = '(?u)\b\w\w+\b'
 [[character_filters]]
 to_lowercase = {}

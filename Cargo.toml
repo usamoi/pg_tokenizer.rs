@@ -19,6 +19,10 @@ pg16 = ["pgrx/pg16", "pgrx-tests/pg16"]
 pg17 = ["pgrx/pg17", "pgrx-tests/pg17"]
 pg_test = ["insta"]
 lindera-ipadic = ["lindera/ipadic"]
+lindera-ipadic-neologd = ["lindera/ipadic-neologd"]
+lindera-unidic = ["lindera/unidic"]
+lindera-ko-dic = ["lindera/ko-dic"]
+lindera-cc-cedict = ["lindera/cc-cedict"]
 
 [dependencies]
 dashmap = "6.1.0"

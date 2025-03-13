@@ -1,0 +1,42 @@
+statement ok
+BEGIN;
+
+statement ok
+SELECT tokenizer_catalog.create_tokenizer('tokenizer_bert_base_uncased', $$
+model = "bert_base_uncased"
+$$);
+
+statement ok
+SELECT tokenizer_catalog.create_tokenizer('tokenizer_wiki_tocken', $$
+model = "wiki_tocken"
+$$);
+
+statement ok
+SELECT tokenizer_catalog.create_tokenizer('tokenizer_gemma2b', $$
+model = "gemma2b"
+$$);
+
+statement ok
+SELECT tokenizer_catalog.create_tokenizer('tokenizer_llmlingua2', $$
+model = "llmlingua2"
+$$);
+
+query T
+SELECT tokenizer_catalog.tokenize('PostgreSQL is a powerful, open-source object-relational database system. It has over 15 years of active development.', 'tokenizer_bert_base_uncased');
+----
+{2695,17603,2015,4160,2140,2003,1037,3928,1010,2330,1011,3120,4874,1011,28771,7809,2291,1012,2009,2038,2058,2321,2086,1997,3161,2458,1012}
+
+query T
+SELECT tokenizer_catalog.tokenize('PostgreSQL is a powerful, open-source object-relational database system. It has over 15 years of active development.', 'tokenizer_wiki_tocken');
+----
+{45687,73048,51433,18768,66267,83000,86235,71285,85016,28035,51614,88845}
+
+query T
+SELECT tokenizer_catalog.tokenize('PostgreSQL is a powerful, open-source object-relational database system. It has over 15 years of active development.', 'tokenizer_gemma2b');
+----
+{4738,107696,603,476,10276,235269,2174,235290,2757,4018,235290,3680,1429,8746,1812,235265,1165,919,1163,235248,235274,235308,1658,576,6066,3505,235265}
+
+query T
+SELECT tokenizer_catalog.tokenize('PostgreSQL is a powerful, open-source object-relational database system. It has over 15 years of active development.', 'tokenizer_llmlingua2');
+----
+{2795,7134,158897,83,10,113138,4,9803,9,60427,36746,9,25653,43315,63399,5426,5,1650,1556,645,423,5369,111,36457,34754,5}
