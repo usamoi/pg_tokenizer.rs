@@ -150,6 +150,12 @@ The extension is mainly composed by 2 parts, `text analyzer` and `model`. `text 
 
 <br/>
 
+- `tokenizer_catalog.add_preload_model(name TEXT)`: Add a model to the preload list.
+- `tokenizer_catalog.remove_preload_model(name TEXT)`: Remove a model from the preload list.
+- `tokenizer_catalog.list_preload_models() RETURNS TEXT[]`: List all preload models.
+
+<br/>
+
 - `tokenizer_catalog.create_lindera_model(name TEXT, config TEXT)`: Create a lindera model.
 - `tokenizer_catalog.drop_lindera_model(name TEXT)`: Drop a lindera model.
 

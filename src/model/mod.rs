@@ -86,13 +86,17 @@ pub fn get_model(name: &str) -> TokenizerModelPtr {
 }
 
 fn get_model_from_database(name: &str) -> Option<TokenizerModelPtr> {
+    let config = get_model_config(name)?;
+    Some(build_model(name, &config))
+}
+
+fn get_model_config(name: &str) -> Option<ModelConfig> {
     let config_bytes: &str = spi_get_one(
         "SELECT config FROM tokenizer_catalog.model WHERE name = $1",
         &[name.into()],
     )?;
 
-    let config: ModelConfig = serde_json::from_str(config_bytes).unwrap();
-    Some(build_model(name, &config))
+    serde_json::from_str(config_bytes).unwrap()
 }
 
 fn build_model(name: &str, config: &ModelConfig) -> TokenizerModelPtr {
@@ -132,6 +136,150 @@ pub fn validate_new_model_name(name: &str) -> Result<(), String> {
     Ok(())
 }
 
-pub fn init() {
-    builtin::init();
+#[pgrx::pg_extern(volatile, parallel_unsafe)]
+pub fn add_preload_model(name: &str) {
+    validate_new_model_name(name).unwrap();
+    get_model(name);
+
+    let path = std::path::Path::new("pg_tokenizer/preload_models").join(name);
+    if is_builtin_model(name) {
+        std::fs::write(&path, "").unwrap();
+    } else {
+        let config = get_model_config(name).unwrap();
+        std::fs::write(&path, serde_json::to_string(&config).unwrap()).unwrap();
+    }
 }
+
+#[pgrx::pg_extern(volatile, parallel_unsafe)]
+pub fn remove_preload_model(name: &str) {
+    validate_model_name(name).unwrap();
+    let path = std::path::Path::new("pg_tokenizer/preload_models").join(name);
+    match std::fs::remove_file(&path) {
+        Ok(_) => {}
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            pgrx::warning!("Preload model not found: {}", name);
+        }
+        Err(e) => {
+            pgrx::error!("Failed to remove file: {}", e);
+        }
+    }
+}
+
+#[pgrx::pg_extern(volatile, parallel_unsafe)]
+pub fn list_preload_models() -> Vec<String> {
+    let dir_path = std::path::Path::new("pg_tokenizer/preload_models");
+    let mut models = Vec::new();
+    for entry in std::fs::read_dir(dir_path).unwrap() {
+        let entry = entry.unwrap();
+        let name = entry.file_name().into_string().unwrap();
+        models.push(name);
+    }
+
+    models
+}
+
+pub fn init() {
+    let dir_path = std::path::Path::new("pg_tokenizer/preload_models");
+    if !dir_path.exists() {
+        match std::fs::create_dir_all(dir_path) {
+            Ok(_) => {}
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
+            Err(e) => {
+                pgrx::error!("Failed to create directory: {}", e);
+            }
+        }
+        for name in builtin::PRELOAD_MODELS {
+            let path = dir_path.join(name);
+            std::fs::write(&path, "").unwrap();
+        }
+    }
+
+    for entry in std::fs::read_dir(dir_path).unwrap() {
+        let entry = entry.unwrap();
+        let name = entry.file_name().into_string().unwrap();
+        validate_model_name(&name).unwrap();
+
+        if let Some(object) = get_builtin_model(&name) {
+            MODEL_OBJECT_POOL.insert(name, object);
+            continue;
+        }
+
+        let content = std::fs::read_to_string(entry.path()).unwrap();
+        let config: ModelConfig = serde_json::from_str(&content).unwrap();
+        let object = build_model(&name, &config);
+        MODEL_OBJECT_POOL.insert(name, object);
+    }
+}
+
+// pub fn prewarm_models() {
+//     let prewarm_models_guc = PREWARM_MODELS.get();
+//     let Some(prewarm_models) = prewarm_models_guc else {
+//         return;
+//     };
+//     for name in prewarm_models.to_str().unwrap().split_whitespace() {
+//         validate_model_name(name).unwrap();
+
+//         if let Some(object) = get_builtin_model(name) {
+//             MODEL_OBJECT_POOL.insert(name.to_string(), object.clone());
+//             continue;
+//         }
+
+//         match unsafe { get_model_from_database_without_spi(name) } {
+//             Ok(Some(object)) => {
+//                 MODEL_OBJECT_POOL.insert(name.to_string(), object.clone());
+//                 continue;
+//             }
+//             Ok(None) => {}
+//             Err(e) => {
+//                 pgrx::warning!("Error while prewarming model: {}", e);
+//                 continue;
+//             }
+//         }
+
+//         pgrx::warning!("Model not found: {}", name);
+//     }
+// }
+
+// unsafe fn get_model_from_database_without_spi(
+//     name: &str,
+// ) -> anyhow::Result<Option<TokenizerModelPtr>> {
+//     let namespace_id = pgrx::pg_sys::get_namespace_oid(c"tokenizer_catalog".as_ptr(), false);
+//     let table_oid = pgrx::pg_sys::get_relname_relid(c"model".as_ptr(), namespace_id);
+//     anyhow::ensure!(table_oid != pgrx::pg_sys::InvalidOid, "Table not found");
+
+//     let rel = pgrx::PgRelation::open(table_oid);
+//     let scan = pgrx::pg_sys::table_beginscan(
+//         rel.as_ptr(),
+//         &raw mut pgrx::pg_sys::SnapshotAnyData,
+//         0,
+//         std::ptr::null_mut(),
+//     );
+
+//     let mut config: Option<ModelConfig> = None;
+
+//     let mut tuple_ptr =
+//         pgrx::pg_sys::heap_getnext(scan, pgrx::pg_sys::ScanDirection::ForwardScanDirection);
+//     while tuple_ptr != std::ptr::null_mut() {
+//         let tuple = PgHeapTuple::from_heap_tuple(rel.tuple_desc(), tuple_ptr);
+//         let tuple_name: &str = tuple
+//             .get_by_index(NonZeroUsize::new(1).unwrap())?
+//             .ok_or(anyhow::anyhow!("Name is null"))?;
+//         if tuple_name != name {
+//             tuple_ptr =
+//                 pgrx::pg_sys::heap_getnext(scan, pgrx::pg_sys::ScanDirection::ForwardScanDirection);
+//             continue;
+//         }
+
+//         let config_str: &str = tuple
+//             .get_by_index(NonZeroUsize::new(2).unwrap())?
+//             .ok_or(anyhow::anyhow!("Config is null"))?;
+//         config = Some(serde_json::from_str(config_str)?);
+//         break;
+//     }
+//     pgrx::pg_sys::table_endscan(scan);
+
+//     let Some(config) = config else {
+//         return Ok(None);
+//     };
+//     Ok(Some(build_model(name, &config)))
+// }

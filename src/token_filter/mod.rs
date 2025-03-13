@@ -43,5 +43,3 @@ pub fn get_token_filter(config: TokenFilterConfig) -> TokenFilterPtr {
         TokenFilterConfig::Synonym(name) => synonym::get_synonym_token_filter(&name),
     }
 }
-
-pub fn init() {}

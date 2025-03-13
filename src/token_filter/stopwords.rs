@@ -164,8 +164,8 @@ pub fn _pg_tokenizer_stopwords_init() {
 
 pgrx::extension_sql!(
     r#"
-    SELECT _pg_tokenizer_stopwords_init();
+    SELECT tokenizer_catalog._pg_tokenizer_stopwords_init();
     "#,
     name = "stopwords_init",
-    requires = ["stopwords_table"]
+    requires = ["stopwords_table", _pg_tokenizer_stopwords_init]
 );

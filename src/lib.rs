@@ -19,8 +19,8 @@ unsafe extern "C" fn _PG_init() {
     if unsafe { pgrx::pg_sys::IsUnderPostmaster } {
         pgrx::error!("pg_tokenizer must be loaded via shared_preload_libraries.");
     }
+
     pre_tokenizer::init();
-    token_filter::init();
     model::init();
 }
 
