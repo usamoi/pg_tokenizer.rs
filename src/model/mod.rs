@@ -131,3 +131,7 @@ pub fn validate_new_model_name(name: &str) -> Result<(), String> {
 
     Ok(())
 }
+
+pub fn init() {
+    builtin::init();
+}

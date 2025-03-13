@@ -8,7 +8,7 @@ pre_tokenizer.regex = '(?u)\b\w\w+\b'
 [[character_filters]]
 to_lowercase = {}
 [[token_filters]]
-stopwords = "nltk"
+stopwords = "nltk_english"
 [[token_filters]]
 stemmer = "english_porter2"
 $$);

@@ -30,3 +30,7 @@ pub fn get_pre_tokenizer(config: PreTokenizerConfig) -> PreTokenizerPtr {
         PreTokenizerConfig::Jieba(config) => create_jieba_pre_tokenizer(config),
     }
 }
+
+pub fn init() {
+    jieba::init();
+}

@@ -14,6 +14,16 @@ compile_error!("Target is not supported.");
 #[cfg(not(any(feature = "pg14", feature = "pg15", feature = "pg16", feature = "pg17")))]
 compiler_error!("PostgreSQL version must be selected.");
 
+#[pgrx::pg_guard]
+unsafe extern "C" fn _PG_init() {
+    if unsafe { pgrx::pg_sys::IsUnderPostmaster } {
+        pgrx::error!("pg_tokenizer must be loaded via shared_preload_libraries.");
+    }
+    pre_tokenizer::init();
+    token_filter::init();
+    model::init();
+}
+
 #[cfg(test)]
 pub mod pg_test {
     pub fn setup(_options: Vec<&str>) {

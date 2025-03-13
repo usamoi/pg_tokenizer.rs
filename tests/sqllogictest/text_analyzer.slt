@@ -11,7 +11,7 @@ unicode_normalization = "nfkd"
 [[token_filters]]
 skip_non_alphanumeric = {}
 [[token_filters]]
-stopwords = "nltk"
+stopwords = "nltk_english"
 [[token_filters]]
 stemmer = "english_porter2"
 $$);

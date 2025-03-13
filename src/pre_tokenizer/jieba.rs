@@ -71,3 +71,7 @@ pub fn create_jieba_pre_tokenizer(config: JiebaConfig) -> PreTokenizerPtr {
         }),
     }
 }
+
+pub fn init() {
+    LazyLock::force(&JIEBA);
+}

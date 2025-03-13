@@ -10,7 +10,6 @@ use pg_dict::PgDictTokenFilter;
 use serde::{Deserialize, Serialize};
 use skip_non_alphanumeric::SkipNonAlphanumeric;
 use stemmer::{StemmerKind, StemmerTokenFilter};
-use stopwords::{StopwordsKind, StopwordsTokenFilter};
 
 pub trait TokenFilter {
     fn apply(&self, token: String) -> Vec<String>;
@@ -30,7 +29,7 @@ pub type TokenFilterPtr = Arc<dyn TokenFilter + Sync + Send>;
 pub enum TokenFilterConfig {
     SkipNonAlphanumeric,
     Stemmer(StemmerKind),
-    Stopwords(StopwordsKind),
+    Stopwords(String),
     PgDict(String),
     Synonym(String),
 }
@@ -39,8 +38,10 @@ pub fn get_token_filter(config: TokenFilterConfig) -> TokenFilterPtr {
     match config {
         TokenFilterConfig::SkipNonAlphanumeric => Arc::new(SkipNonAlphanumeric),
         TokenFilterConfig::Stemmer(kind) => Arc::new(StemmerTokenFilter::new(kind)),
-        TokenFilterConfig::Stopwords(kind) => Arc::new(StopwordsTokenFilter::new(kind)),
+        TokenFilterConfig::Stopwords(name) => stopwords::get_stopwords_token_filter(&name),
         TokenFilterConfig::PgDict(name) => Arc::new(PgDictTokenFilter::new(&name)),
         TokenFilterConfig::Synonym(name) => synonym::get_synonym_token_filter(&name),
     }
 }
+
+pub fn init() {}
