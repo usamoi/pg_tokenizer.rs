@@ -125,6 +125,11 @@ The extension is mainly composed by 2 parts, `text analyzer` and `model`. `text 
 
 <br/>
 
+- `tokenizer_catalog.create_stopwords(name TEXT, config TEXT)`: Create a stopwords dictionary.
+- `tokenizer_catalog.drop_stopwords(name TEXT)`: Drop a stopwords dictionary.
+
+<br/>
+
 - `tokenizer_catalog.create_synonym(name TEXT, config TEXT)`: Create a synonym dictionary.
 - `tokenizer_catalog.drop_synonym(name TEXT)`: Drop a synonym dictionary.
 
@@ -193,7 +198,8 @@ You can choose only one of the above options for each character filter.
 | --------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | skip_non_alphanumeric | Empty Table | Skip tokens that all characters are non-alphanumeric                                                                                                                                |
 | stemmer               | String      | Stemmer, see [Supported values for `stemmer`](#supported-values-for-stemmer)                                                                                                        |
-| stopwords             | String      | Stopwords, supported values: `lucene`, `nltk`, `iso`                                                                                                                                |
+| stopwords             | String      | Stopwords name, builtin: `lucene_english`, `nltk_english`, `iso_english`                                                                                                            |
+| synonym               | String      | Synonym name                                                                                                                                                                        |
 | pg_dict               | String      | Using [postgres text search dictionary](https://www.postgresql.org/docs/current/textsearch-dictionaries.html). We currently support all dictionaries except `Thesaurus Dictionary`. |
 
 You can choose only one of the above options for each token filter.
