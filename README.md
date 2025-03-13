@@ -6,7 +6,7 @@ A PostgreSQL extension that provides tokenizers for full-text search.
 
 ```sql
 SELECT tokenizer_catalog.create_tokenizer('tokenizer1', $$
-model = "bert"
+model = "bert_base_uncased"
 pre_tokenizer.regex = '(?u)\b\w\w+\b'
 [[character_filters]]
 to_lowercase = {}
@@ -118,17 +118,38 @@ The extension is mainly composed by 2 parts, `text analyzer` and `model`. `text 
 
 ### Functions
 
+#### Text Analyzer
 - `tokenizer_catalog.create_text_analyzer(name TEXT, config TEXT)`: Create a text analyzer.
 - `tokenizer_catalog.drop_text_analyzer(name TEXT)`: Drop a text analyzer.
 - `tokenizer_catalog.apply_text_analyzer(text TEXT, text_analyzer_name TEXT) RETURNS TEXT[]`: Apply a text analyzer to a text.
-- `tokenizer_catalog.create_tokenizer(name TEXT, config TEXT)`: Create a tokenizer.
-- `tokenizer_catalog.drop_tokenizer(name TEXT)`: Drop a tokenizer.
-- `tokenizer_catalog.tokenize(text TEXT, tokenizer_name TEXT) RETURNS INT[]`: Tokenize a text.
+
+<br/>
+
+- `tokenizer_catalog.create_synonym(name TEXT, config TEXT)`: Create a synonym dictionary.
+- `tokenizer_catalog.drop_synonym(name TEXT)`: Drop a synonym dictionary.
+
+#### Model
+
 - `tokenizer_catalog.create_custom_model(name TEXT, config TEXT)`: Create a custom model.
 - `tokenizer_catalog.create_custom_model_tokenizer_and_trigger(tokenizer_name TEXT, model_name TEXT, text_analyzer_name TEXT, table_name TEXT, source_column TEXT, target_column TEXT)`: Create a custom model tokenizer and trigger to update the target column automatically.
 - `tokenizer_catalog.drop_custom_model(name TEXT)`: Drop a custom model.
+
+<br/>
+
 - `tokenizer_catalog.create_lindera_model(name TEXT, config TEXT)`: Create a lindera model.
 - `tokenizer_catalog.drop_lindera_model(name TEXT)`: Drop a lindera model.
+
+<br/>
+
+- `tokenizer_catalog.create_huggingface_model(name TEXT, config TEXT)`: Create a huggingface model.
+- `tokenizer_catalog.drop_huggingface_model(name TEXT)`: Drop a huggingface model.
+
+#### Tokenizer
+
+- `tokenizer_catalog.create_tokenizer(name TEXT, config TEXT)`: Create a tokenizer.
+- `tokenizer_catalog.drop_tokenizer(name TEXT)`: Drop a tokenizer.
+- `tokenizer_catalog.tokenize(text TEXT, tokenizer_name TEXT) RETURNS INT[]`: Tokenize a text.
+
 
 ## Configuration
 
@@ -186,7 +207,14 @@ arabic, armenian, basque, catalan, danish, dutch, english_porter, english_porter
 | Key           | Type   | Description                                                                       |
 | ------------- | ------ | --------------------------------------------------------------------------------- |
 | text_analyzer | String | Text analyzer name. If you are using an external model, you can just ignore this. |
-| model         | String | Model name.                                                                       |
+| model         | String | Model name. We have some builtin models, see [Builtin models](#builtin-models)    |
+
+#### Builtin models
+
+- [bert-base-uncased](https://huggingface.co/google-bert/bert-base-uncased)
+- [wiki_tocken](https://huggingface.co/datasets/iohadrubin/wikitext-103-raw-v1)
+- [gemma2b](https://huggingface.co/google/gemma-2b)
+- [llmlingua2](https://huggingface.co/microsoft/llmlingua-2-xlm-roberta-large-meetingbank)
 
 ### Options for `custom model`
 
