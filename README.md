@@ -91,6 +91,15 @@ SELECT tokenizer_catalog.apply_text_analyzer('Aus so krummen Holze, als woraus d
 
 ## Installation
 
+First, you need to add `pg_tokenizer` to your `shared_preload_libraries` in `postgresql.conf`.
+
+```sql
+-- Note: A restart is required for this setting to take effect.
+ALTER SYSTEM SET shared_preload_libraries = 'pg_tokenizer.so';
+```
+
+Then, you can install the extension in the database.
+
 ```bash
 CREATE EXTENSION pg_tokenizer;
 ```
