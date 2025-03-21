@@ -143,12 +143,7 @@ fn create_text_analyzer(name: &str, config: &str) {
             panic!("Text analyzer already exists: {}", name);
         }
 
-        if TEXT_ANALYZER_OBJECT_POOL
-            .insert(name.to_string(), Arc::new(text_analyzer))
-            .is_some()
-        {
-            panic!("TextAnalyzer already exists: {}", name);
-        }
+        TEXT_ANALYZER_OBJECT_POOL.insert(name.to_string(), Arc::new(text_analyzer));
     });
 }
 

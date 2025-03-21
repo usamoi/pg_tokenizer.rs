@@ -138,7 +138,7 @@ pub fn validate_new_model_name(name: &str) -> Result<(), String> {
 
 #[pgrx::pg_extern(volatile, parallel_unsafe)]
 pub fn add_preload_model(name: &str) {
-    validate_new_model_name(name).unwrap();
+    validate_model_name(name).unwrap();
     get_model(name);
 
     let path = std::path::Path::new("pg_tokenizer/preload_models").join(name);
@@ -210,35 +210,6 @@ pub fn init() {
         MODEL_OBJECT_POOL.insert(name, object);
     }
 }
-
-// pub fn prewarm_models() {
-//     let prewarm_models_guc = PREWARM_MODELS.get();
-//     let Some(prewarm_models) = prewarm_models_guc else {
-//         return;
-//     };
-//     for name in prewarm_models.to_str().unwrap().split_whitespace() {
-//         validate_model_name(name).unwrap();
-
-//         if let Some(object) = get_builtin_model(name) {
-//             MODEL_OBJECT_POOL.insert(name.to_string(), object.clone());
-//             continue;
-//         }
-
-//         match unsafe { get_model_from_database_without_spi(name) } {
-//             Ok(Some(object)) => {
-//                 MODEL_OBJECT_POOL.insert(name.to_string(), object.clone());
-//                 continue;
-//             }
-//             Ok(None) => {}
-//             Err(e) => {
-//                 pgrx::warning!("Error while prewarming model: {}", e);
-//                 continue;
-//             }
-//         }
-
-//         pgrx::warning!("Model not found: {}", name);
-//     }
-// }
 
 // unsafe fn get_model_from_database_without_spi(
 //     name: &str,

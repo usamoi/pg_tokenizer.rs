@@ -57,12 +57,7 @@ fn create_lindera_model(name: &str, config: &str) {
             panic!("Model already exists: {}", name);
         }
 
-        if MODEL_OBJECT_POOL
-            .insert(name.to_string(), Arc::new(lindera_model))
-            .is_some()
-        {
-            panic!("Model already exists: {}", name);
-        }
+        MODEL_OBJECT_POOL.insert(name.to_string(), Arc::new(lindera_model));
     });
 }
 

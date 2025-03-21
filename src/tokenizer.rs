@@ -142,12 +142,7 @@ fn create_tokenizer(name: &str, config: &str) {
             panic!("Tokenizer already exists: {}", name);
         }
 
-        if TOKENIZER_OBJECT_POOL
-            .insert(name.to_string(), Arc::new(tokenizer))
-            .is_some()
-        {
-            panic!("Tokenizer already exists: {}", name);
-        }
+        TOKENIZER_OBJECT_POOL.insert(name.to_string(), Arc::new(tokenizer));
     });
 }
 
