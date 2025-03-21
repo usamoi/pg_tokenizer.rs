@@ -45,7 +45,7 @@ serde_json = "1.0.139"
 pgrx-tests = "=0.13.1"
 
 [patch.crates-io]
-pgrx = { git = "https://github.com/silver-ymz/pgrx", branch = "chore/add-ts_cache.h" }
+pgrx = { git = "https://github.com/silver-ymz/pgrx", branch = "patch-to-pg_tokenizer" }
 
 [profile.release]
 opt-level = 3
@@ -57,7 +57,3 @@ inherits = "dev"
 opt-level = 3
 lto = "thin"
 codegen-units = 8
-
-[profile.dev.package]
-insta.opt-level = 3
-similar.opt-level = 3

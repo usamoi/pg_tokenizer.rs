@@ -82,7 +82,7 @@ Details of `text analyzer` configuration can be found in the [text analyzer](05-
 ### Model
 
 `model` has 2 main types, `pre-trained`, `custom`.
-- `pre-trained` models have pre-trained vocab lists and some pre-defined tokenization rules. e.g. [`bert_base_uncased`](https://huggingface.co/google-bert/bert-base-uncased), `wiki_tocken`(https://huggingface.co/datasets/iohadrubin/wikitext-103-raw-v1).
+- `pre-trained` models have pre-trained vocab lists and some pre-defined tokenization rules. e.g. [`bert_base_uncased`](https://huggingface.co/google-bert/bert-base-uncased), [`wiki_tocken`](https://huggingface.co/datasets/iohadrubin/wikitext-103-raw-v1).
 - `custom` models will maintain their own vocab mapping. You can build a custom model based on your own corpus easily.
 
 > Note that some models may have similar processes as `text analyzer`, so you can skip the `text analyzer` configuration for these models.

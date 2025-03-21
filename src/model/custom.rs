@@ -302,29 +302,33 @@ fn custom_model_tokenizer_set_target_column_trigger<'a>(
         new.set_by_index(idx, target)
             .expect("set target column failed");
     } else {
-        panic!(
-            "Unsupported target column type: {}",
-            lookup_type_name(attoid)
-        );
-        // TODO: cast it using spi, waiting for pgrx update
-        // let target_casted = pgrx::Spi::connect(|client| {
-        //     let tuptable = client
-        //         .select(
-        //             &format!("SELECT $1::{}", lookup_type_name(attoid)),
-        //             Some(1),
-        //             &[target.into()],
-        //         )
-        //         .unwrap_or_report();
+        let target_casted = pgrx::Spi::connect(|client| {
+            client
+                .select(
+                    &format!("SELECT $1::{}", lookup_type_name(attoid)),
+                    Some(1),
+                    &[target.into()],
+                )
+                .unwrap_or_report();
 
-        //     tuptable
-        //         .first()
-        //         .get_datum_by_ordinal(1)
-        //         .unwrap_or_report()
-        //         .unwrap()
-        // });
+            unsafe {
+                let table = pgrx::pg_sys::SPI_tuptable.as_mut().unwrap();
+                if table.numvals != 1 {
+                    panic!("unexpected number of tuples returned");
+                }
+                let heap_tuple = *(table.vals);
+                let heap_tuple = pgrx::pg_sys::SPI_copytuple(heap_tuple);
 
-        // new.set_by_index(idx, target_casted)
-        //     .expect("set target column failed");
+                let mut is_null = false;
+                let datum = pgrx::pg_sys::SPI_getbinval(heap_tuple, table.tupdesc, 1, &mut is_null);
+
+                if is_null {
+                    panic!("unexpected null value");
+                }
+                datum
+            }
+        });
+        unsafe { new.set_by_index_unchecked(idx, Some(target_casted)) };
     }
 
     Ok(Some(new))
