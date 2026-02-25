@@ -1,0 +1,49 @@
+{
+    "name": "pg_tokenizer",
+    "abstract": "Tokenizer plugin for PostgreSQL",
+    "description": "A PostgreSQL extension that provides tokenizers for full-text search",
+    "version": "@DISTVERSION@",
+    "maintainer": [
+        "TensorChord support@tensorchord.ai",
+        "usamoi usamoi@tensorchord.ai"
+    ],
+    "license": "apache_2_0",
+    "prereqs": {
+        "runtime": {
+            "requires": {
+                "PostgreSQL": "14.0.0"
+            }
+        }
+    },
+    "provides": {
+        "pg_tokenizer": {
+            "file": "src/lib.rs",
+            "docfile": "README.md",
+            "version": "@DISTVERSION@",
+            "abstract": "Tokenizer plugin for PostgreSQL"
+        }
+    },
+    "resources": {
+        "homepage": "https://github.com/tensorchord/pg_tokenizer.rs",
+        "bugtracker": {
+            "web": "https://github.com/tensorchord/pg_tokenizer.rs/issues"
+        },
+        "repository": {
+            "url": "https://github.com/tensorchord/pg_tokenizer.rs.git",
+            "web": "https://github.com/tensorchord/pg_tokenizer.rs",
+            "type": "git"
+        }
+    },
+    "generated_by": "TensorChord",
+    "meta-spec": {
+        "version": "1.0.0",
+        "url": "http://pgxn.org/meta/spec.txt"
+    },
+    "tags": [
+        "vector search",
+        "vectors",
+        "datatype",
+        "nearest neighbor search",
+        "approximate nearest neighbors"
+    ]
+}

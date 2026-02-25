@@ -1,7 +1,5 @@
-use std::{
-    collections::HashSet,
-    sync::{Arc, LazyLock},
-};
+use std::collections::HashSet;
+use std::sync::{Arc, LazyLock};
 
 use dashmap::{DashMap, Entry};
 use serde::{Deserialize, Serialize};

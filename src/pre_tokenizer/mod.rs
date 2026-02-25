@@ -4,7 +4,7 @@ mod unicode_segmentation;
 
 use std::sync::Arc;
 
-use jieba::{create_jieba_pre_tokenizer, JiebaConfig};
+use jieba::{JiebaConfig, create_jieba_pre_tokenizer};
 use regex::RegexPreTokenizer;
 use serde::{Deserialize, Serialize};
 use unicode_segmentation::UnicodeSegmentationPretokenizer;

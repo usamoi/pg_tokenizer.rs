@@ -1,6 +1,7 @@
 #![allow(clippy::upper_case_acronyms)]
 
-use std::{borrow::Cow, sync::Arc};
+use std::borrow::Cow;
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 use unicode_normalization::UnicodeNormalization;

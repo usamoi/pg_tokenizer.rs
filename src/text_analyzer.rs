@@ -1,18 +1,14 @@
-use std::{
-    borrow::Cow,
-    sync::{Arc, LazyLock},
-};
+use std::borrow::Cow;
+use std::sync::{Arc, LazyLock};
 
 use dashmap::{DashMap, Entry};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::{
-    character_filter::{get_character_filter, CharacterFilterConfig, CharacterFilterPtr},
-    pre_tokenizer::{get_pre_tokenizer, PreTokenizerConfig, PreTokenizerPtr},
-    token_filter::{get_token_filter, TokenFilterConfig, TokenFilterPtr},
-    utils::spi_get_one,
-};
+use crate::character_filter::{CharacterFilterConfig, CharacterFilterPtr, get_character_filter};
+use crate::pre_tokenizer::{PreTokenizerConfig, PreTokenizerPtr, get_pre_tokenizer};
+use crate::token_filter::{TokenFilterConfig, TokenFilterPtr, get_token_filter};
+use crate::utils::spi_get_one;
 
 #[derive(Clone, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use tokenizers::Tokenizer;
 
-use super::{validate_new_model_name, ModelConfig, TokenizerModel, MODEL_OBJECT_POOL};
+use super::{MODEL_OBJECT_POOL, ModelConfig, TokenizerModel, validate_new_model_name};
 
 #[derive(Debug)]
 pub struct HuggingFaceModel {

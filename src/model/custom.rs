@@ -1,16 +1,18 @@
-use std::{collections::HashMap, ffi::CStr, sync::Arc};
+use std::collections::HashMap;
+use std::ffi::CStr;
+use std::sync::Arc;
 
-use pgrx::{
-    pg_sys::{panic::ErrorReportable, AsPgCStr},
-    prelude::PgHeapTuple,
-    WhoAllocated,
-};
+use pgrx::WhoAllocated;
+use pgrx::pg_sys::AsPgCStr;
+use pgrx::pg_sys::panic::ErrorReportable;
+use pgrx::prelude::PgHeapTuple;
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
-use crate::{text_analyzer::get_text_analyzer, utils::spi_get_one};
+use crate::text_analyzer::get_text_analyzer;
+use crate::utils::spi_get_one;
 
-use super::{validate_new_model_name, ModelConfig, TokenizerModel, MODEL_OBJECT_POOL};
+use super::{MODEL_OBJECT_POOL, ModelConfig, TokenizerModel, validate_new_model_name};
 
 #[derive(Debug)]
 pub struct CustomModel {
@@ -208,7 +210,9 @@ fn apply_text_analyzer_for_custom_model(text: &str, text_analyzer_name: &str) ->
     for i in 0..len {
         let token_len = results[i].len();
         if token_len > MAX_TOKEN_LENGTH {
-            pgrx::warning!("There is a custom table token whose length has exceeded MAX_TOKEN_LENGTH({MAX_TOKEN_LENGTH}). It will be cut off to multiple tokens. If you need to support long token, welcome to submit an issue to \"https://github.com/tensorchord/VectorChord-bm25/issues\".");
+            pgrx::warning!(
+                "There is a custom table token whose length has exceeded MAX_TOKEN_LENGTH({MAX_TOKEN_LENGTH}). It will be cut off to multiple tokens. If you need to support long token, welcome to submit an issue to \"https://github.com/tensorchord/VectorChord-bm25/issues\"."
+            );
 
             let replace_token = results[i][..MAX_TOKEN_LENGTH].to_string();
             let token = std::mem::replace(&mut results[i], replace_token);
@@ -274,7 +278,7 @@ $body$ LANGUAGE plpgsql;
 #[pgrx::pg_trigger]
 fn custom_model_tokenizer_set_target_column_trigger<'a>(
     trigger: &'a pgrx::PgTrigger<'a>,
-) -> Result<Option<PgHeapTuple<'a, impl WhoAllocated>>, ()> {
+) -> Result<Option<PgHeapTuple<'a, impl WhoAllocated + use<>>>, ()> {
     use pgrx::IntoDatum;
 
     let mut new = trigger.new().expect("new tuple is missing").into_owned();

@@ -1,6 +1,6 @@
 comment = 'pg_tokenizer'
-default_version = '@CARGO_VERSION@'
-module_pathname = '$libdir/pg_tokenizer'
+default_version = '0.0.0'
+module_pathname = 'pg_tokenizer'
 relocatable = false
 superuser = false
-schema = tokenizer_catalog
+schema = 'tokenizer_catalog'

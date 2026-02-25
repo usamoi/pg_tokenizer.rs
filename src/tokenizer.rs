@@ -4,14 +4,12 @@ use dashmap::{DashMap, Entry};
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
-use crate::{
-    character_filter::CharacterFilterConfig,
-    model::{get_model, TokenizerModelPtr},
-    pre_tokenizer::PreTokenizerConfig,
-    text_analyzer::{get_text_analyzer, TextAnalyzer, TextAnalyzerConfig, TextAnalyzerPtr},
-    token_filter::TokenFilterConfig,
-    utils::spi_get_one,
-};
+use crate::character_filter::CharacterFilterConfig;
+use crate::model::{TokenizerModelPtr, get_model};
+use crate::pre_tokenizer::PreTokenizerConfig;
+use crate::text_analyzer::{TextAnalyzer, TextAnalyzerConfig, TextAnalyzerPtr, get_text_analyzer};
+use crate::token_filter::TokenFilterConfig;
+use crate::utils::spi_get_one;
 
 #[derive(Clone, Serialize, Deserialize, Validate)]
 #[validate(schema(function = "TokenizerConfig::validate_text_analyzer"))]
